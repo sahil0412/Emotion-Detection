@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotion Detection Model</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .uploaded-image-preview {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: none; /* Hidden initially */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Emotion Detection Model Demo</h1>
+        <div class="upload-form">
+            <form action="/predict" method="post" enctype="multipart/form-data">
+                <input type="file" name="file" id="file" class="input-file" onchange="previewImage(event)">
+                <label for="file" class="file-label">Choose an image</label>
+                <img id="uploaded-image-preview" class="uploaded-image-preview" src="#" alt="Image preview">
+                <button type="submit" class="btn">Predict</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function previewImage(event) {
+            var reader = new FileReader();
+            reader.onload = function(){
+                var output = document.getElementById('uploaded-image-preview');
+                output.src = reader.result;
+                output.style.display = 'block';
+            }
+            reader.readAsDataURL(event.target.files[0]);
+        }
+    </script>
+</body>
+</html>
