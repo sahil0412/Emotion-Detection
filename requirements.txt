@@ -3,4 +3,5 @@ tensorflow==2.15.0
 numpy
 Pillow
 opencv-python
+opencv-python-headless
 flask
