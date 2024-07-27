@@ -18,11 +18,20 @@
 </head>
 <body>
     <div class="container">
-        <h1>Emotion Detection Model Demo</h1>
+        <h1>Emotion Detection</h1>
         <div class="upload-form">
             <form action="/predict" method="post" enctype="multipart/form-data">
                 <input type="file" name="file" id="file" class="input-file" onchange="previewImage(event)">
                 <label for="file" class="file-label">Choose an image</label>
+                <img id="uploaded-image-preview" class="uploaded-image-preview" src="#" alt="Image preview">
+                <button type="submit" class="btn">Predict</button>
+            </form>
+        </div>
+    </div>
+    <div class="container">
+        <h1>Live Prediction</h1>
+        <div class="upload-form">
+            <form action="/video_feed" method="post" enctype="multipart/form-data">
                 <img id="uploaded-image-preview" class="uploaded-image-preview" src="#" alt="Image preview">
                 <button type="submit" class="btn">Predict</button>
             </form>

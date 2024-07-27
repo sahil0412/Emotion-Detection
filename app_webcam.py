@@ -16,8 +16,9 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Load the deep learning model
-model = tf.keras.models.load_model('models/Final_Resnet50_Best_model.h5', compile=False)
+model_name = "Final_Resnet50_Best_model.h5"
+# Load the best trained model
+model = tf.keras.models.load_model(f'models/{model_name}', compile=False)
 
 # Initialize the face classifier
 face_classifier = cv2.CascadeClassifier('models/haarcascade_frontalface_default.xml')
@@ -34,10 +35,11 @@ def allowed_file(filename):
 def home():
     return render_template('index.html')
 
-@app.route('/video_feed')
+@app.route('/video_feed', methods=['POST'])
 def video_feed():
     return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
-
+# sahiltest1 (480, 640, 3)
+# sahiltest1 (480, 640)
 def gen_frames():
     camera = cv2.VideoCapture(0)  # Use 0 for the default camera
     while True:
@@ -45,19 +47,56 @@ def gen_frames():
         if not success:
             break
         else:
-            # Preprocess the frame
-            face = cv2.resize(frame, (224, 224))
-            face = face.astype("float") / 255.0
-            face = img_to_array(face)
-            face = np.expand_dims(face, axis=0)
+            # Convert frame to grayscale for face detection
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            # Detect faces
+            faces = face_classifier.detectMultiScale(gray, scaleFactor=1.3, minNeighbors=5)
+            for (x, y, w, h) in faces:
+                face = gray[y:y + h, x:x + w]
+                if model_name == "Final_Resnet50_Best_model.h5":
+                    face_resized = cv2.resize(frame, (224, 224))
+                    face_normalized = face_resized.astype("float") / 255.0
+                    face_array = img_to_array(face_normalized)
+                    face_array = np.expand_dims(face_array, axis=0)
+                elif model_name == "CNNFromScratchModel.h5":
+                    face_resized = cv2.resize(face, (48, 48))
+                    face_array = img_to_array(face_resized)
+                    face_array = np.expand_dims(face_array, axis=0)
+                elif model_name in ["CNNFromScratchRescaledlModel.h5", "CNNFromScratchAugmentedModel.h5"]:
+                    face_resized = cv2.resize(face, (48, 48))
+                    face_normalized = face_resized.astype("float") / 255.0
+                    face_array = img_to_array(face_normalized)
+                    face_array = np.expand_dims(face_array, axis=0)
+                elif model_name == "Resnet50V2Baisc.h5":
+                    face_resized = cv2.resize(frame, (224, 224)) # Load and resize the image
+                    face_array = img_to_array(face_resized)  # Convert image to array
+                    face_array = np.expand_dims(face_array, axis=0)  # Add batch dimension
+                    face_array = tf.keras.applications.resnet50.preprocess_input(face_array)
+                elif model_name == "Resnet50V2PretrainedAug48.h5":
+                    face_resized = cv2.resize(frame, (48, 48)) # Load and resize the image
+                    face = cv2.cvtColor(face_resized, cv2.COLOR_BGR2RGB)
+                    face_normalized = face.astype("float") / 255.0
+                    face_array = img_to_array(face_normalized)  # Convert image to array
+                    face_array = np.expand_dims(face_array, axis=0)  # Add batch dimension
+                elif model_name == "Resnet50V2PretrainedAug224.h5":
+                    face_resized = cv2.resize(frame, (224, 224)) # Load and resize the image
+                    face = cv2.cvtColor(face_resized, cv2.COLOR_BGR2RGB)
+                    face_normalized = face.astype("float") / 255.0
+                    face_array = img_to_array(face_normalized)  # Convert image to array
+                    face_array = np.expand_dims(face_array, axis=0)  # Add batch dimension
+                elif model_name == "Final_Resnet50_Best_model.h5":
+                    face_resized = cv2.resize(frame, (224, 224))
+                    face = face_resized.astype("float") / 255.0
+                    face = img_to_array(face)
+                    face = np.expand_dims(face, axis=0)
 
-            # Make prediction using your deep learning model
-            prediction = model.predict(face)
-            emotion = emotion_labels[np.argmax(prediction)]
-
-            # Overlay prediction on the frame
-            cv2.putText(frame, emotion, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-
+                # Make prediction using your deep learning model
+                prediction = model.predict(face_array)
+                emotion = emotion_labels[np.argmax(prediction)]
+                # Draw a rectangle around the face and put the emotion label
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
+                cv2.putText(frame, emotion, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
+                
             # Convert the frame to JPEG
             ret, buffer = cv2.imencode('.jpg', frame)
             frame = buffer.tobytes()
@@ -77,23 +116,18 @@ def predict():
             filename = secure_filename(file.filename)
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(filepath)
-
             # Read and preprocess the image
             file_img = cv2.imread(filepath)
             face = cv2.resize(file_img, (224, 224))
+            # face = cv2.cvtColor(face, cv2.COLOR_BGR2RGB)
             face = face.astype("float") / 255.0
             face = img_to_array(face)
             face = np.expand_dims(face, axis=0)
-
-            # Make prediction using your deep learning model
             prediction = model.predict(face)
             emotion = emotion_labels[np.argmax(prediction)]
-
-            # Pass prediction and image file path to result template
             return render_template('result.html', prediction=emotion, image_file=filename)
 
 if __name__ == '__main__':
-    # Ensure the upload directory exists
     if not os.path.exists(UPLOAD_FOLDER):
         os.makedirs(UPLOAD_FOLDER)
     
