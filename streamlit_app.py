@@ -6,6 +6,9 @@ import tensorflow as tf
 from tensorflow.keras.preprocessing.image import img_to_array
 from werkzeug.utils import secure_filename
 
+# Pull the model from DVC
+os.system('dvc pull')
+
 # Define the static and upload directories
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
