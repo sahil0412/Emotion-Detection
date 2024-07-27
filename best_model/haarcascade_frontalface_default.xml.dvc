@@ -1,0 +1,5 @@
+outs:
+- md5: a03f92a797e309e76e6a034ab9e02616
+  size: 930127
+  hash: md5
+  path: haarcascade_frontalface_default.xml

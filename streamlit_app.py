@@ -12,10 +12,10 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 model_name = "Final_Resnet50_Best_model.h5"
 # Load the best trained model
-model = tf.keras.models.load_model(f'models/{model_name}', compile=False)
+model = tf.keras.models.load_model(f'best_model/{model_name}', compile=False)
 
 # Initialize the face classifier
-face_classifier = cv2.CascadeClassifier('models/haarcascade_frontalface_default.xml')
+face_classifier = cv2.CascadeClassifier('best_model/haarcascade_frontalface_default.xml')
 
 # Emotion labels
 emotion_labels = ['Angry', 'Disgust', 'Fear', 'Happy', 'Neutral', 'Sad', 'Surprise']
